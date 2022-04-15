@@ -75,7 +75,7 @@ const pointC = new THREE.Vector3(0, 0, 1);
 const pointD = new THREE.Vector3(0, 1, 1);
 const pointList = [pointA, pointB, pointC, pointD];
 const mushyAngle = 0;
-const numIter = 3;
+const numIter = 4;
 const mushy = myGenerator.createMushroom(pointList, mushyAngle, numIter);
 scene.add( mushy );
 
