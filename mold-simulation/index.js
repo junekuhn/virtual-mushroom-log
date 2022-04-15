@@ -69,9 +69,9 @@ scene.add( light2 );
 // const geometry = new THREE.BufferGeometry();
 
 const myGenerator = new MushroomGenerator();
-const pointA = new THREE.Vector3(0, 0, 0);
-const pointB = new THREE.Vector3(0, 1, 0);
-const pointC = new THREE.Vector3(0, 0, 1);
+const pointA = new THREE.Vector3(0, -1, -1);
+const pointB = new THREE.Vector3(0, 1, -1);
+const pointC = new THREE.Vector3(0, -1, 1);
 const pointD = new THREE.Vector3(0, 1, 1);
 const pointList = [pointA, pointB, pointC, pointD];
 const mushyAngle = 0;
@@ -79,7 +79,25 @@ const numIter = 4;
 const mushy = myGenerator.createMushroom(pointList, mushyAngle, numIter);
 scene.add( mushy );
 
+const guiControls = new function() {
+    this.kRule = 'J',
+    this.lRule = 'III',
+    this.iRule = 'KK',
+    this.kAngle = 90,
+    this.lAngle = 90,
+    this.iAngle = 90
+}
 
+const gui = new GUI();
+const animationFolder = gui.addFolder('Animation');
+animationFolder.add(guiControls, 'kRule');
+animationFolder.add(guiControls, 'lRule');
+animationFolder.add(guiControls, 'iRule');
+animationFolder.add(guiControls, 'kAngle', 45, 135);
+animationFolder.add(guiControls, 'lAngle', 60, 135);
+animationFolder.add(guiControls, 'iAngle', 60, 135);
+// animationFolder.onchange(animate);
+animationFolder.open();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 window.addEventListener( 'resize', onWindowResize );

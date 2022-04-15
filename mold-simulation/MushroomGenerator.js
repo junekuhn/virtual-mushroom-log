@@ -3,9 +3,10 @@ import "../deps/helpers.js"
 import * as THREE from '../deps/three.js';
 /*
 
-build out L and I
-figure out how to fan out the mushroom
-coloring
+build a gui to 
+    figure out how to fan out the mushroom
+    coloring
+    test out different rules
 
 rowpointslength is not calculated correctly is n>2
 merge branches somehow
@@ -36,7 +37,8 @@ class MushroomGenerator {
             //k represents the seed, and n represents the end
             nextRow: 'L',
             structure: '',
-            currentIndex: 0
+            currentIndex: 0,
+            numIter: numIter
         };
 
         const normals = [];
@@ -81,6 +83,8 @@ class MushroomGenerator {
     createFanPoints(angle, numIter, fanPoints) {
 
         console.log(numIter + "is the remaining rows");
+
+        let scalingYFactor = 0.4*(fanPoints.numIter - numIter) + 1;
 
         const currentRow = fanPoints.nextRow;
         // will always be the number of letters + the final vertex
@@ -143,8 +147,8 @@ class MushroomGenerator {
             switch(currentRow[i]) {
                 case 'K':
                     // append new points
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, pointA.y, pointA.z);
-                    fanPoints.positions.push(pointB.x + 1, pointB.y, pointB.z);
+                    if(i<1) fanPoints.positions.push(pointA.x + 1, scalingYFactor*pointA.y, pointA.z);
+                    fanPoints.positions.push(pointB.x + 1, scalingYFactor*pointB.y, pointB.z);
 
 
                     //counterclockwise indices
@@ -164,14 +168,14 @@ class MushroomGenerator {
                     if(i<1) fanPoints.colors.push(1, 1, 1);
                     fanPoints.colors.push(1, 1, 1);
 
-                    fanPoints.nextRow += 'J';
+                    fanPoints.nextRow += 'K';
                     //in units of vectices
                     nextRowLength = fanPoints.nextRow.length+1;
                     fanPoints.structure += 'K';
                     break;
                 case 'J':
                     //calculate new point and push it
-                    const newY = (pointB.y - pointA.y) /2;
+                    const newY = pointA.y + (pointB.y - pointA.y) /2;
                     if(i<1) fanPoints.positions.push(pointA.x + 1, newY, pointA.z );
 
             
@@ -187,13 +191,13 @@ class MushroomGenerator {
                     nextRowLength = fanPoints.nextRow.length+1;
                     break;
                 case 'L':
-                    const oneThird = (pointB.y - pointA.y)*0.33;
-                    const twoThirds = (pointB.y - pointA.y) * 0.66;
+                    const oneThird = pointA.y + (pointB.y - pointA.y)*0.33;
+                    const twoThirds = pointA.y + (pointB.y - pointA.y) * 0.66;
 
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, pointA.y, pointA.z);
-                    fanPoints.positions.push(pointA.x + 1,oneThird, pointA.z );
-                    fanPoints.positions.push(pointA.x + 1, twoThirds, pointA.z);
-                    fanPoints.positions.push(pointB.x + 1, pointB.y, pointB.z);
+                    if(i<1) fanPoints.positions.push(pointA.x + 1, scalingYFactor*pointA.y, pointA.z);
+                    fanPoints.positions.push(pointA.x + 1, scalingYFactor*oneThird, pointA.z );
+                    fanPoints.positions.push(pointA.x + 1, scalingYFactor*twoThirds, pointA.z);
+                    fanPoints.positions.push(pointB.x + 1, scalingYFactor*pointB.y, pointB.z);
 
 //generate the three triangles
 
@@ -235,9 +239,9 @@ class MushroomGenerator {
                     const midY = pointA.y + (pointB.y - pointA.y) /2 ;
 
                     //merge branches by not pushing the first point
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, pointA.y, pointA.z);
-                    fanPoints.positions.push(pointA.x + 1, midY, pointA.z);
-                    fanPoints.positions.push(pointB.x + 1, pointB.y, pointB.z);
+                    if(i<1) fanPoints.positions.push(pointA.x + 1, scalingYFactor*pointA.y, pointA.z);
+                    fanPoints.positions.push(pointA.x + 1, scalingYFactor*midY, pointA.z);
+                    fanPoints.positions.push(pointB.x + 1, scalingYFactor*pointB.y, pointB.z);
 
 
                         //generate the three triangles
@@ -330,8 +334,8 @@ class MushroomGenerator {
                 case 'K':
 
                     // append new points
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, pointC.y, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, pointD.y, pointD.z);
+                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
+                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
 
 
                     //counterclockwise indice
@@ -358,8 +362,8 @@ class MushroomGenerator {
 
 
                     //calculate new point and push it
-                    const newY = (pointD.y - pointC.y) /2
-                    fanPoints.positions.push(pointC.x + 1, newY, pointC.z);
+                    const newY = pointC.y + (pointD.y - pointC.y) /2
+                    if(i<1) fanPoints.positions.push(pointC.x + 1, newY, pointC.z);
 
                     fanPoints.indices.push(
                         fanPoints.currentIndex,
@@ -367,14 +371,14 @@ class MushroomGenerator {
                         fanPoints.currentIndex+weirdRowLength+nextRowLength
                     );
 
-                    fanPoints.colors.push(1, 1, 1);
+                    if(i<1) fanPoints.colors.push(1, 1, 1);
                     break;
                 case 'I':
                     const midY = pointC.y + (pointD.y - pointC.y) /2 ;
 
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, pointC.y, pointC.z);
-                    fanPoints.positions.push(pointC.x + 1, midY, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, pointD.y, pointD.z);
+                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
+                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*midY, pointC.z);
+                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
 
                     //generate the three triangles
                     //(2,7,8)
@@ -396,10 +400,6 @@ class MushroomGenerator {
                         fanPoints.currentIndex + weirdRowLength+nextRowLength + 2
                     );
 
-                    
-                    if(i>0) console.log(weirdRowLength + "weird should be " + nextRowLength);
-
-
                     if(i<1) fanPoints.colors.push(1,1,1);
                     fanPoints.colors.push(1,1,1);
                     fanPoints.colors.push(1,1,1);
@@ -407,13 +407,13 @@ class MushroomGenerator {
                     rowLengthTracker += 2;
                     break;
                case 'L':
-                    const oneThird2 = (pointD.y - pointC.y)*0.33;
-                    const twoThirds2 = (pointD.y - pointC.y) * 0.66;
+                    const oneThird2 = pointC.y + (pointD.y - pointC.y)*0.33;
+                    const twoThirds2 = pointC.y + (pointD.y - pointC.y) * 0.66;
 
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, pointC.y, pointC.z);
-                    fanPoints.positions.push(pointC.x + 1,oneThird2, pointC.z );
-                    fanPoints.positions.push(pointC.x + 1, twoThirds2, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, pointD.y, pointD.z);
+                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
+                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*oneThird2, pointC.z );
+                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*twoThirds2, pointC.z);
+                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
 
                     //generate the three triangles
                     //(2,7,8)
@@ -498,7 +498,7 @@ class MushroomGenerator {
 
         const mesh = new THREE.Mesh( geometry, material );
 
-        return line;
+        return mesh;
     }
 
     getPositionByIndex(index) {
