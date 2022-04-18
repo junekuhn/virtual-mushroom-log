@@ -1,40 +1,16 @@
 import "../deps/helpers.js"
 
 import * as THREE from '../deps/three.js';
-/*
-
-build a gui to 
-    figure out how to fan out the mushroom
-    coloring
-    test out different rules
-
-corrent normals for correct sidedness
-there's a bug with L
-the mesh can't rerender??
-
-gltf exporter
-
-how to grow the mushroom into a curve?
-https://github.com/zz85/threejs-path-flow
-https://ada.is/blog/2020/10/29/curve-modifiers-in-threejs/
-
-
-
-additionally
-use the cross product to extrude
-add getpositionbyindex to object
-safeguardsv f
-
-
-*/
 
 class MushroomGenerator {
-    constructor(lSystemRules, colors) {
+    constructor(lSystemRules, colors, wireframeMode, scaler) {
         this.rules = lSystemRules;
         this.colors = colors;
+        this.wireframeMode = wireframeMode;
+        this.scaler = scaler;
     }
 
-    createMushroom(fourPoints, numIter=1) {
+    createMushroom(fourPoints, numIter=1, angle) {
 
         this.myFanPoints = {
             positions: [],
@@ -46,10 +22,6 @@ class MushroomGenerator {
             currentIndex: 0,
             numIter: numIter
         };
-
-        const normals = [];
-        const colors = [];
-        const indices = [];
 
         const pointA = fourPoints[0];
         const pointB = fourPoints[1];
@@ -75,55 +47,45 @@ class MushroomGenerator {
         console.log("before creating points" + this.myFanPoints.positions);
         console.log(this.myFanPoints.colors);
 
-        this.createFanPoints(numIter, this.myFanPoints);
+        this.createFanPoints(numIter, this.myFanPoints, angle);
 
         console.log("after creating points" + this.myFanPoints.indices);
         console.log("positions + " + this.myFanPoints.positions);
-        console.log("indices" + this.myFanPoints.structure);
+        console.log("resulting structure" + this.myFanPoints.structure);
 
         const mushroomMesh = this.createMushroomMesh(this.myFanPoints);
        
         return mushroomMesh;
     }
 
-    createFanPoints(numIter, fanPoints) {
+    createFanPoints(numIter, fanPoints, angle) {
 
         console.log(numIter + "is the remaining rows");
-
-        let scalingYFactor = 0.03*(fanPoints.numIter - numIter) + 1;
+        let scalingYFactor = (fanPoints.numIter - numIter)*0.03 +1;
         //starting radius of 2, then increase by 1 per row
-        let radius = (fanPoints.numIter - numIter)+2;
+        let radius = this.scaler**(fanPoints.numIter - numIter)+2;
 
         const currentRow = fanPoints.nextRow;
         console.log(currentRow)
         // will always be the number of letters + the final vertex
         let rowPointsLength;
-        // if(currentRow.length<4)   
         rowPointsLength = currentRow.length+1;
-        // } else {
-        //     //because of branching
-        //     rowPointsLength = currentRow.length + 2;
-        // }
         fanPoints.nextRow = '';
         let nextRowLength = 0;
         let weirdRowLength = rowPointsLength;
-
         let myNextRow = 0;
 
         for(let i = 0; i< currentRow.length; i++) {
             myNextRow += this.ruleLookup(currentRow[i]);
             console.log(myNextRow + "current")
             // to account for the first point
-
         }
         myNextRow++;
 
-
-
-
-        if(numIter == 0 || currentRow.length ==0) {
+        if(numIter == 0 || currentRow.length == 0) {
             //add the last faces on the far end of the mushroom
             //there is a forloop but no switch
+
             for(let i = 0; i<currentRow.length; i++) {
                 fanPoints.indices.push(
                     fanPoints.currentIndex+1, 
@@ -144,9 +106,14 @@ class MushroomGenerator {
             return;
         }
 
-        console.log(myNextRow + " my next row")
-        let thetaStep = Math.PI / (myNextRow-1);
-        console.log(thetaStep + " is theta step")
+        // console.log(myNextRow + " my next row")
+        let thetaStep;
+        if(myNextRow==1) {
+            thetaStep = Math.PI
+        } else {
+            thetaStep = (Math.PI + angle) / (myNextRow-1);
+        }
+        // console.log(thetaStep + " is theta step")
         let rowPointsCounter = 0;
 
 
@@ -174,9 +141,17 @@ class MushroomGenerator {
     
             switch(currentRow[i]) {
                 case 'K':
-                    // append new points 4 and 5
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, scalingYFactor*pointA.y, pointA.z);
-                    fanPoints.positions.push(pointB.x + 1, scalingYFactor*pointB.y, pointB.z);
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointA.z
+                        );
+                        rowPointsCounter++;
+                    }
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    rowPointsCounter++;
 
                     //counterclockwise indices
                     fanPoints.indices.push(zero, five, four);
@@ -190,9 +165,17 @@ class MushroomGenerator {
                     fanPoints.structure += 'K';
                     break;
                 case 'J':
-                    //calculate new point and push it
-                    const newY = pointA.y + (pointB.y - pointA.y) /2;
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, newY, pointA.z );
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        rowPointsCounter+= 0.5;
+                        console.log(thetaStep);
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointA.z
+                        );
+                        rowPointsCounter+= 0.5;
+                    }
 
             
                     fanPoints.indices.push(zero, one, four);
@@ -203,13 +186,21 @@ class MushroomGenerator {
                     fanPoints.structure += 'J';
                     break;
                 case 'L':
-                    const oneThird = pointA.y + (pointB.y - pointA.y)*0.33;
-                    const twoThirds = pointA.y + (pointB.y - pointA.y) * 0.66;
-
-                    if(i<1) fanPoints.positions.push(pointA.x + 1, scalingYFactor*pointA.y, pointA.z);
-                    fanPoints.positions.push(pointA.x + 1, scalingYFactor*oneThird, pointA.z );
-                    fanPoints.positions.push(pointA.x + 1, scalingYFactor*twoThirds, pointA.z);
-                    fanPoints.positions.push(pointB.x + 1, scalingYFactor*pointB.y, pointB.z);
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointA.z
+                        );
+                        rowPointsCounter++;
+                    }
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    rowPointsCounter++;
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    rowPointsCounter++;           
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    rowPointsCounter++;
 
 //generate the three triangles
 
@@ -296,10 +287,7 @@ class MushroomGenerator {
         // fanPoints.colors.push(1, 1, 1);
         // fanPoints.colors.push(1, 1, 1);
 
-        let rowLengthTracker = 0;
-        console.log(myNextRow + " my next row")
-        thetaStep = Math.PI / (myNextRow-1);
-        console.log(thetaStep + " is theta step")
+        let rowLengthTracker = 0
         rowPointsCounter = 0;
         //create the second fan
         for(let i = 0; i<currentRow.length; i++) {
@@ -310,30 +298,37 @@ class MushroomGenerator {
             const pointD = this.getPositionByIndex(fanPoints.currentIndex+1);
 
             weirdRowLength = rowPointsLength-i+rowLengthTracker;
-
+            let zero = fanPoints.currentIndex;
+            let one = fanPoints.currentIndex+1;
+            let four = fanPoints.currentIndex+nextRowLength+weirdRowLength;
+            let five = fanPoints.currentIndex+nextRowLength+weirdRowLength+1;
+            let six = fanPoints.currentIndex+nextRowLength+weirdRowLength+2;
+            let seven = fanPoints.currentIndex+nextRowLength+weirdRowLength+3;
 
 
             switch(currentRow[i]) {
                 case 'K':
 
-                    // append new points
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointC.z
+                        );
+                        rowPointsCounter ++;
+                    }
+                    // rowPointsCounter+=0.5;
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointC.z);
+                    // rowPointsCounter+=0.5;
+                    rowPointsCounter++;
 
 
                     //counterclockwise indice
                     // fanPoints.indices.push(0, 5, 4)
                     //fanPoints.indices.push(0, 1, 5)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex, 
-                        fanPoints.currentIndex+weirdRowLength+nextRowLength ,
-                        fanPoints.currentIndex+weirdRowLength+nextRowLength+1,
-                        );
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex, 
-                        fanPoints.currentIndex+weirdRowLength+nextRowLength+1,
-                        fanPoints.currentIndex+1,
-                        );
+                    fanPoints.indices.push(zero, four, five);
+                    fanPoints.indices.push(zero, five, one);
 
                     if(i<1) fanPoints.colors.push(this.colors.K.r, this.colors.K.g, this.colors.K.b);
                     fanPoints.colors.push(this.colors.K.r, this.colors.K.g, this.colors.K.b);
@@ -342,20 +337,18 @@ class MushroomGenerator {
                     break;
                 case 'J':
                     // for this one we only create one point to make a triangular shape
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        rowPointsCounter += 0.5;
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointC.z
+                        );
+                        rowPointsCounter += 0.5;
+                    }
 
-
-                    //calculate new point and push it
-                    const newY = pointC.y + (pointD.y - pointC.y) /2
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, newY, pointC.z);
-
-                    console.log("weird row length is " + weirdRowLength);
-
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex,
-                        // fanPoints.currentIndex+weirdRowLength+nextRowLength,
-                        fanPoints.currentIndex + weirdRowLength + nextRowLength,
-                        fanPoints.currentIndex+1,
-                    );
+                    fanPoints.indices.push(zero, four, one);
 
                     if(i<1) fanPoints.colors.push(this.colors.J.r, this.colors.J.g, this.colors.J.b);
                     break;
@@ -385,23 +378,11 @@ class MushroomGenerator {
 
                     //generate the three triangles
                     //(2,7,8)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                    );
+                    fanPoints.indices.push(zero, four, five);
                     //(2,8,3)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                        fanPoints.currentIndex + 1,
-                    );
+                    fanPoints.indices.push(zero, five, one);
                     //(3,8,9)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex + 1,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 2,
-                    );
+                    fanPoints.indices.push(one, five, six);
 
                     if(i<1) fanPoints.colors.push(this.colors.I.r, this.colors.I.g, this.colors.I.b);
                     fanPoints.colors.push(this.colors.I.r, this.colors.I.g, this.colors.I.b);
@@ -410,39 +391,31 @@ class MushroomGenerator {
                     rowLengthTracker += 2;
                     break;
                case 'L':
-                    const oneThird2 = pointC.y + (pointD.y - pointC.y)*0.33;
-                    const twoThirds2 = pointC.y + (pointD.y - pointC.y) * 0.66;
-
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
-                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*oneThird2, pointC.z );
-                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*twoThirds2, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
+                    //merge branches by not pushing the first point
+                    if(i<1) {
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointC.z
+                        );
+                        rowPointsCounter ++;
+                    }
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointC.z);
+                    rowPointsCounter++;
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointC.z);
+                    rowPointsCounter++;
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointC.z);
+                    rowPointsCounter++;
 
                     //generate the three triangles
                     //(2,7,8)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                    );
+                    fanPoints.indices.push(zero, four, five);
                     //(2,8,3)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                        fanPoints.currentIndex + 1,
-                    );
+                    fanPoints.indices.push(zero, five, one);
                     //(3,8,9)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex + 1,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 1,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength + 2,
-                    );
+                    fanPoints.indices.push(one, five, six);
                     //(1, 7, 6)
-                    fanPoints.indices.push(
-                        fanPoints.currentIndex+1,
-                        fanPoints.currentIndex + weirdRowLength+nextRowLength+2,
-                        fanPoints.currentIndex+ weirdRowLength+nextRowLength+3,
-                    )
+                    fanPoints.indices.push(one, six, seven);
 
 
                     if(i<1) fanPoints.colors.push(this.colors.L.r, this.colors.L.g, this.colors.L.b);
@@ -479,7 +452,7 @@ class MushroomGenerator {
         fanPoints.currentIndex++;
 
 
-        this.createFanPoints(numIter-1, fanPoints);
+        this.createFanPoints(numIter-1, fanPoints, angle);
     }
 
     createMushroomMesh(upperFanPoints) {
@@ -504,7 +477,8 @@ class MushroomGenerator {
 
         const mesh = new THREE.Mesh( geometry, material );
 
-        return line;
+        if(this.wireframeMode) return line;
+        else return mesh;
     }
 
     getPositionByIndex(index) {
