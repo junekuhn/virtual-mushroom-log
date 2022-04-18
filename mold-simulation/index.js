@@ -185,10 +185,10 @@ function onWindowResize() {
 function updateMushroom() {
     console.log("updating mushroom");
 
-    //remove previous objects
-    while(scene.children.length > 0){ 
-        scene.remove(scene.children[0]); 
-    }
+    // //remove previous objects
+    // while(scene.children.length > 0){ 
+    //     scene.remove(scene.children[0]); 
+    // }
 
     //add new ones
     myGenerator = new MushroomGenerator(myRules, myColors);

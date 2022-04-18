@@ -108,6 +108,15 @@ class MushroomGenerator {
         let nextRowLength = 0;
         let weirdRowLength = rowPointsLength;
 
+        let myNextRow = 0;
+
+        for(let i = 0; i< currentRow.length; i++) {
+            myNextRow += this.ruleLookup(currentRow[i]);
+            console.log(myNextRow + "current")
+            // to account for the first point
+
+        }
+        myNextRow++;
 
 
 
@@ -135,6 +144,11 @@ class MushroomGenerator {
             return;
         }
 
+        console.log(myNextRow + " my next row")
+        let thetaStep = Math.PI / (myNextRow-1);
+        console.log(thetaStep + " is theta step")
+        let rowPointsCounter = 0;
+
 
         //create the first fan
         for(let i = 0; i<currentRow.length; i++) {
@@ -155,15 +169,8 @@ class MushroomGenerator {
             let six = fanPoints.currentIndex+rowPointsLength+weirdRowLength+2;
             let seven = fanPoints.currentIndex+rowPointsLength+weirdRowLength+3;
 
-            let myNextRow = 0;
 
-            for(let i = 0; i< currentRow.length; i++) {
-                myNextRow += this.ruleLookup(currentRow[i]);
-            }
-            console.log(myNextRow + " my next row")
-            let thetaStep = Math.PI / (myNextRow-1);
-            console.log(thetaStep + " is theta step")
-            let rowPointsCounter = 0;
+
     
             switch(currentRow[i]) {
                 case 'K':
@@ -227,16 +234,14 @@ class MushroomGenerator {
                     if(i<1) {
                         fanPoints.positions.push(
                             radius*Math.sin(thetaStep*rowPointsCounter),
-                            radius*Math.cos(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
                             pointA.z
                         );
                         rowPointsCounter++;
                     }
-                    console.log(thetaStep)
-                   console.log(radius*Math.sin(thetaStep*rowPointsCounter) + "should be 2"); 
-                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
                     rowPointsCounter++;
-                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
+                    fanPoints.positions.push(radius*Math.sin(thetaStep*rowPointsCounter), -radius*Math.cos(thetaStep*rowPointsCounter), pointA.z);
                     rowPointsCounter++;
 
 
@@ -292,6 +297,10 @@ class MushroomGenerator {
         // fanPoints.colors.push(1, 1, 1);
 
         let rowLengthTracker = 0;
+        console.log(myNextRow + " my next row")
+        thetaStep = Math.PI / (myNextRow-1);
+        console.log(thetaStep + " is theta step")
+        rowPointsCounter = 0;
         //create the second fan
         for(let i = 0; i<currentRow.length; i++) {
 
@@ -301,6 +310,8 @@ class MushroomGenerator {
             const pointD = this.getPositionByIndex(fanPoints.currentIndex+1);
 
             weirdRowLength = rowPointsLength-i+rowLengthTracker;
+
+
 
             switch(currentRow[i]) {
                 case 'K':
@@ -351,9 +362,26 @@ class MushroomGenerator {
                 case 'I':
                     const midY = pointC.y + (pointD.y - pointC.y) /2 ;
 
-                    if(i<1) fanPoints.positions.push(pointC.x + 1, scalingYFactor*pointC.y, pointC.z);
-                    fanPoints.positions.push(pointC.x + 1, scalingYFactor*midY, pointC.z);
-                    fanPoints.positions.push(pointD.x + 1, scalingYFactor*pointD.y, pointD.z);
+                    if(i<1) {
+                        fanPoints.positions.push(
+                            radius*Math.sin(thetaStep*rowPointsCounter),
+                            -radius*Math.cos(thetaStep*rowPointsCounter),
+                            pointC.z
+                            );
+                        rowPointsCounter++;
+                    }
+                    fanPoints.positions.push(
+                        radius*Math.sin(thetaStep*rowPointsCounter),
+                        -radius*Math.cos(thetaStep*rowPointsCounter),
+                        pointC.z
+                        );
+                        rowPointsCounter++;
+                    fanPoints.positions.push(
+                        radius*Math.sin(thetaStep*rowPointsCounter),
+                        -radius*Math.cos(thetaStep*rowPointsCounter),
+                        pointD.z
+                        );
+                        rowPointsCounter++;
 
                     //generate the three triangles
                     //(2,7,8)
@@ -505,7 +533,7 @@ class MushroomGenerator {
             default:
                 break;
         }
-        return numBranches+1;
+        return numBranches;
     }
 }
 
