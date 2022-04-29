@@ -73,7 +73,7 @@ scene.add( light2 );
 
 const loader = new GLTFLoader().setPath('./models/');
 
-loader.load( 'secondModel.glb', function(gltf) {
+loader.load( 'logWithTexture.glb', function(gltf) {
 
     //set scaling based on the size of the model
     let bBox = new THREE.Box3().setFromObject(gltf.scene);

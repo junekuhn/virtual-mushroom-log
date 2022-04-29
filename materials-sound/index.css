@@ -11,3 +11,8 @@ canvas {
     margin: 0px;
     padding: 0px;
 }
+h1 {
+    z-index: 100;
+    font-size: 18px;
+    color: white;
+}
