@@ -47,7 +47,7 @@ import * as THREE from '../deps/three.js';
 import { OrbitControls } from '../deps/OrbitControls.js';
 import { GUI } from '../deps/dat.gui.min.js';
 import  { GLTFLoader } from '../deps/GLTFLoader.js';
-import "../deps/helpers.js";
+
 
 //setup
 const scene = new THREE.Scene();
