@@ -4,7 +4,6 @@ import * as THREE from '../deps/three.js';
 import { OrbitControls } from '../deps/OrbitControls.js';
 import { GLTFExporter } from '../deps/GLTFExporter.js';
 import { GUI } from '../deps/dat.gui.min.js';
-import "../deps/helpers.js";
 import MushroomGenerator from './MushroomGenerator.js';
 
 //setup
@@ -20,7 +19,7 @@ document.body.appendChild( renderer.domElement );
 let light1, light2;
 
 
-// const geometry = new THREE.BufferGeometry();
+// default L-System rules
 let myRules = {
     K: 'I',
     L: 'KLK',
@@ -28,6 +27,7 @@ let myRules = {
     J: '',
     seed: 'I'
 }
+//default colors per type of structure
 let myColors = {
     K: new THREE.Color(0x823F27),
     L: new THREE.Color(0x363E5A),
@@ -42,7 +42,7 @@ const pointD = new THREE.Vector3(0, 1, 1);
 const pointList = [pointA, pointB, pointC, pointD];
 
 
-
+//setup gui controls
 const guiControls = new function() {
     this.kRule = myRules.K,
     this.lRule = myRules.L,
@@ -54,6 +54,7 @@ const guiControls = new function() {
     this.exportScene = exportScene;
 }
 
+//create the guicontrols and listen for changes
 const gui = new GUI();
 const animationFolder = gui.addFolder('Mushroom');
 const kListener = animationFolder.add(guiControls, 'kRule');
@@ -66,6 +67,7 @@ const myAngle = animationFolder.add(guiControls, 'angle', 0, Math.PI, 0.01);
 animationFolder.add(guiControls, "exportScene").name("Export Scene");
 animationFolder.open();
 
+//listeners for gui changes
 kListener.onFinishChange( (text) => {
     if(text.length == 1) {
         myRules.K = text;
@@ -113,8 +115,9 @@ myAngle.onFinishChange((angle) => {
 const controls = new OrbitControls(camera, renderer.domElement);
 window.addEventListener( 'resize', onWindowResize );
 
-
+//initialize mushroom
 updateMushroom();
+
 // Instantiate a exporter
 const exporter = new GLTFExporter();
 
@@ -197,29 +200,18 @@ function updateMushroom() {
     scene.add( light2 );
 }
 
+// all of this is copied from the GLTF exporter example
 function saveString( text, filename ) {
-
     save( new Blob( [ text ], { type: 'text/plain' } ), filename );
-
 }
-
-
 function saveArrayBuffer( buffer, filename ) {
-
     save( new Blob( [ buffer ], { type: 'application/octet-stream' } ), filename );
-
 }
-
 const link = document.createElement( 'a' );
 link.style.display = 'none';
-document.body.appendChild( link ); // Firefox workaround, see #6594
-
+document.body.appendChild( link ); 
 function save( blob, filename ) {
-
     link.href = URL.createObjectURL( blob );
     link.download = filename;
     link.click();
-
-    // URL.revokeObjectURL( url ); breaks Firefox...
-
 }

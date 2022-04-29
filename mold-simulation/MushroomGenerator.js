@@ -1,5 +1,3 @@
-import "../deps/helpers.js"
-
 import * as THREE from '../deps/three.js';
 
 class MushroomGenerator {
@@ -44,15 +42,17 @@ class MushroomGenerator {
         this.myFanPoints.colors.push(this.colors.I.r, this.colors.I.g, this.colors.I.b);
         this.myFanPoints.colors.push(this.colors.I.r, this.colors.I.g, this.colors.I.b);
 
-        console.log("before creating points" + this.myFanPoints.positions);
-        console.log(this.myFanPoints.colors);
+        // console.log("before creating points" + this.myFanPoints.positions);
+        // console.log(this.myFanPoints.colors);
 
+        // push the rest of the points given the number of iterations and angle
         this.createFanPoints(numIter, this.myFanPoints, angle);
 
-        console.log("after creating points" + this.myFanPoints.indices);
-        console.log("positions + " + this.myFanPoints.positions);
-        console.log("resulting structure" + this.myFanPoints.structure);
+        // console.log("after creating points" + this.myFanPoints.indices);
+        // console.log("positions + " + this.myFanPoints.positions);
+        // console.log("resulting structure" + this.myFanPoints.structure);
 
+        //use the points to create the mesh
         const mushroomMesh = this.createMushroomMesh(this.myFanPoints);
        
         return mushroomMesh;
@@ -60,13 +60,13 @@ class MushroomGenerator {
 
     createFanPoints(numIter, fanPoints, angle) {
 
-        console.log(numIter + "is the remaining rows");
+        // console.log(numIter + "is the remaining rows");
         let scalingYFactor = (fanPoints.numIter - numIter)*0.03 +1;
         //starting radius of 2, then increase by 1 per row
         let radius = this.scaler**(fanPoints.numIter - numIter)+2;
 
         const currentRow = fanPoints.nextRow;
-        console.log(currentRow)
+        // console.log(currentRow)
         // will always be the number of letters + the final vertex
         let rowPointsLength;
         rowPointsLength = currentRow.length+1;
@@ -75,9 +75,10 @@ class MushroomGenerator {
         let weirdRowLength = rowPointsLength;
         let myNextRow = 0;
 
+        //calculate the next row in advance
         for(let i = 0; i< currentRow.length; i++) {
             myNextRow += this.ruleLookup(currentRow[i]);
-            console.log(myNextRow + "current")
+            // console.log(myNextRow + "current")
             // to account for the first point
         }
         myNextRow++;
@@ -168,7 +169,7 @@ class MushroomGenerator {
                     //merge branches by not pushing the first point
                     if(i<1) {
                         rowPointsCounter+= 0.5;
-                        console.log(thetaStep);
+                        // console.log(thetaStep);
                         fanPoints.positions.push(
                             radius*Math.sin(thetaStep*rowPointsCounter),
                             -radius*Math.cos(thetaStep*rowPointsCounter),
@@ -272,7 +273,7 @@ class MushroomGenerator {
         // no positions either
         // at this point the index should be at the end of the first fan
         //push(2,6,4)
-        console.log(nextRowLength + "next row length");
+        // console.log(nextRowLength + "next row length");
         fanPoints.indices.push(
             fanPoints.currentIndex,
             fanPoints.currentIndex+rowPointsLength,
@@ -445,7 +446,7 @@ class MushroomGenerator {
             fanPoints.currentIndex+nextRowLength*2, //7
         );
         
-        console.log(fanPoints.positions.length);
+        // console.log(fanPoints.positions.length);
 
         //indicating the end of a row
         fanPoints.structure += 'N';
