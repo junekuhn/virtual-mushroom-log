@@ -60,11 +60,8 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 //
 
-scene.add( new THREE.AmbientLight( 0x444444 ) );
+scene.add( new THREE.AmbientLight( 0x999999, 5 ) );
 
-const light1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
-light1.position.set( 1, 1, 1 );
-scene.add( light1 );
 
 const light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
 light2.position.set( 0, - 1, 0 );
