@@ -1,17 +1,15 @@
-# three-mold-computer
+# Virtual Mossy Log
 
-todo
+This project contains two static sites
 
- - placement and size and quantity of mushrooms (blender)
- - buy new materials for embriodery (to the store)
- - 3d print for test mushroom (hatchlab)
-  - paint vertices for log (three.js)
-   - texture bake log (blender)
- - add mushrooms to log (blender)
-  - print the whole log with mushrooms on them (hatchlab)
- - double check measurements (hatch)
-- embroider mossy log (hatch)
- - embroider the mushrooms (hatch)
- 
- - how am I going to fit a material over the log?
-   make sure I can make cuts in the material to put down the mossy cover first
+### model-viewing 
+
+This is a webpage that displays the completed model, complete with textures and lighting
+
+### mold-simulation
+
+This is a webpage that generates different kinds of mushrooms that can be placed on a log.  Using an L-System, you can generate mushrooms that span from 180 degrees to 360 degrees around.  The color patterns that emerge are a product of the different kinds of branching.  Any mushroom that's created can be exported to a GLTF model.
+
+This project was completed through Computational Form and Process Module
+
+
