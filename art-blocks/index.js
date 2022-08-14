@@ -3,7 +3,6 @@
 import * as THREE from '../deps/three.js';
 import { OrbitControls } from '../deps/OrbitControls.js';
 import { GLTFExporter } from '../deps/GLTFExporter.js';
-import { GUI } from '../deps/dat.gui.min.js';
 import MushroomGenerator from './MushroomGenerator.js';
 import Random from './Random.js';
 import tokenData from './tokenData.js';
@@ -16,23 +15,20 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 3500 );
 camera.position.z = 300;
 // camera.scale.set(0.01, 0.01, 0.01);
-let myGenerator, numIter = 7, mushy, scaler = 1.5, inputAngle = 0;
+let myGenerator, numIter = R.random_int(5, 12), mushy, scaler = R.random_num(1.1, 1.9), inputAngle = R.random_num(0, 1);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 let light1, light2;
 
-
-
-
 // default L-System rules
 let myRules = {
-    K: 'I',
-    L: 'KLK',
-    I: 'LL',
+    K: ruleLookup(R.random_int(1,2)),
+    L: ruleLookup(R.random_int(1,2))+ruleLookup(R.random_int(0,3))+ruleLookup(R.random_int(1,2)),
+    I: ruleLookup(R.random_int(1,3))+ruleLookup(R.random_int(1,3)),
     J: '',
-    seed: 'I'
+    seed: 'K'
 }
 //default colors per type of structure
 let myColors = {
@@ -41,82 +37,12 @@ let myColors = {
     I: new THREE.Color(0xF0F5F9),
     J: new THREE.Color(0xFF0000)
 }
-let wireframeMode = true;
+let wireframeMode = false;
 const pointA = new THREE.Vector3(0, -1, -1);
 const pointB = new THREE.Vector3(0, 1, -1);
 const pointC = new THREE.Vector3(0, -1, 1);
 const pointD = new THREE.Vector3(0, 1, 1);
 const pointList = [pointA, pointB, pointC, pointD];
-
-
-//setup gui controls
-const guiControls = new function() {
-    this.kRule = myRules.K,
-    this.lRule = myRules.L,
-    this.iRule = myRules.I,
-    this.seed = myRules.seed,
-    this.numIter = numIter,
-    this.wireframe = true,
-    this.angle = Math.PI;
-    // this.exportScene = exportScene;
-}
-
-//create the guicontrols and listen for changes
-const gui = new GUI();
-const animationFolder = gui.addFolder('Mushroom');
-const kListener = animationFolder.add(guiControls, 'kRule');
-const lListener = animationFolder.add(guiControls, 'lRule');
-const iListener = animationFolder.add(guiControls, 'iRule');
-const seedListener = animationFolder.add(guiControls, 'seed');
-const numListener = animationFolder.add(guiControls, 'numIter');
-const wireframeListener = animationFolder.add(guiControls, 'wireframe');
-const myAngle = animationFolder.add(guiControls, 'angle', 0, Math.PI, 0.01);
-// animationFolder.add(guiControls, "exportScene").name("Export Scene");
-animationFolder.open();
-
-//listeners for gui changes
-kListener.onFinishChange( (text) => {
-    if(text.length == 1) {
-        myRules.K = text;
-        updateMushroom();
-    } else {
-
-    }
-});
-lListener.onFinishChange( (text) => {
-    if(text.length == 3){
-        myRules.L = text;
-        updateMushroom();
-    } else {
-        //print error
-    }
-});
-iListener.onFinishChange( (text) => {
-    if(text.length == 2) {
-        myRules.I = text;
-        updateMushroom();
-    } else {
-
-    }
-});
-seedListener.onFinishChange((text) => {
-    myRules.seed = text;
-    updateMushroom();
-})
-numListener.onFinishChange((text) => {
-    numIter = text;
-    updateMushroom();
-})
-numListener.step(1);
-wireframeListener.onFinishChange((boolean) => {
-    console.log(boolean)
-    wireframeMode = boolean;
-    updateMushroom();
-});
-myAngle.onFinishChange((angle) => {
-    inputAngle = angle;
-    updateMushroom();
-})
 
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -166,6 +92,27 @@ function updateMushroom() {
     light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
     light2.position.set( 0, - 1, 0 );
     scene.add( light2 );
+}
+
+function ruleLookup(number) {
+    let numBranches;
+    switch(number) {
+        case 0:
+            numBranches = 'J';
+            break;
+        case 1:
+            numBranches = 'K';
+            break;
+        case 2:
+            numBranches = 'I';
+            break;
+        case 3:
+            numBranches = 'L';
+            break;
+        default:
+            break;
+    }
+    return numBranches;
 }
 
 

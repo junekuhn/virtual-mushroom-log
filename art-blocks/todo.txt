@@ -5,11 +5,12 @@ what to randomize
  - rules
  - origin points for mushrooms
  - the direction that the mushroom grows
- - # of iterations
+ - # of iterations - done
 
  push and pop matrices
 
  what else
  - a thing that the mushroom grows on 
+ - auto scaling
 
 
