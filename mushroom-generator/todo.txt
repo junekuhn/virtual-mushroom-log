@@ -1,0 +1,15 @@
+what to randomize
+
+ - color
+ - shape of mushroom
+ - rules
+ - origin points for mushrooms
+ - the direction that the mushroom grows
+ - # of iterations
+
+ push and pop matrices
+
+ what else
+ - a thing that the mushroom grows on 
+
+

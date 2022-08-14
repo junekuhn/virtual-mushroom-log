@@ -1,4 +1,4 @@
-
+import tokenData from "./tokenData.js";
 
   class Random {
     constructor() {

@@ -5,6 +5,11 @@ import { OrbitControls } from '../deps/OrbitControls.js';
 import { GLTFExporter } from '../deps/GLTFExporter.js';
 import { GUI } from '../deps/dat.gui.min.js';
 import MushroomGenerator from './MushroomGenerator.js';
+import Random from './Random.js';
+import tokenData from './tokenData.js';
+
+let hash = tokenData.hash;
+let R = new Random();
 
 //setup
 const scene = new THREE.Scene();
@@ -52,8 +57,8 @@ const guiControls = new function() {
     this.seed = myRules.seed,
     this.numIter = numIter,
     this.wireframe = true,
-    this.angle = Math.PI,
-    this.exportScene = exportScene;
+    this.angle = Math.PI;
+    // this.exportScene = exportScene;
 }
 
 //create the guicontrols and listen for changes
@@ -66,7 +71,7 @@ const seedListener = animationFolder.add(guiControls, 'seed');
 const numListener = animationFolder.add(guiControls, 'numIter');
 const wireframeListener = animationFolder.add(guiControls, 'wireframe');
 const myAngle = animationFolder.add(guiControls, 'angle', 0, Math.PI, 0.01);
-animationFolder.add(guiControls, "exportScene").name("Export Scene");
+// animationFolder.add(guiControls, "exportScene").name("Export Scene");
 animationFolder.open();
 
 //listeners for gui changes
@@ -120,45 +125,6 @@ window.addEventListener( 'resize', onWindowResize );
 //initialize mushroom
 updateMushroom();
 
-// Instantiate a exporter
-const exporter = new GLTFExporter();
-
-function exportScene() {
-    // Parse the input and generate the glTF output
-    // const options = {
-    //     trs: params.trs,
-    //     onlyVisible: params.onlyVisible,
-    //     truncateDrawRange: params.truncateDrawRange,
-    //     binary: params.binary,
-    //     maxTextureSize: params.maxTextureSize
-    // };
-
-    exporter.parse(
-        scene,
-        // called when the gltf has been generated
-        function ( result ) {
-
-            if ( result instanceof ArrayBuffer ) {
-
-                saveArrayBuffer( result, 'scene.glb' );
-
-            } else {
-
-                const output = JSON.stringify( result, null, 2 );
-                // console.log( output );
-                saveString( output, 'scene.gltf' );
-
-            }
-
-        },
-        // called when there is an error in the generation
-        function ( error ) {
-
-            console.log( 'An error happened' );
-
-        }
-    );
-}
 
 
 function animate() {
@@ -202,30 +168,5 @@ function updateMushroom() {
     scene.add( light2 );
 }
 
-// all of this is copied from the GLTF exporter example
-function saveString( text, filename ) {
-    save( new Blob( [ text ], { type: 'text/plain' } ), filename );
-}
-function saveArrayBuffer( buffer, filename ) {
-    save( new Blob( [ buffer ], { type: 'application/octet-stream' } ), filename );
-}
-const link = document.createElement( 'a' );
-link.style.display = 'none';
-document.body.appendChild( link ); 
-function save( blob, filename ) {
-    link.href = URL.createObjectURL( blob );
-    link.download = filename;
-    link.click();
-}
 
-function genTokenData(projectNum) {
-    let data = {};
-    let hash = "0x";
-    for (var i = 0; i < 64; i++) {
-      hash += Math.floor(Math.random() * 16).toString(16);
-    }
-    data.hash = hash;
-    data.tokenId = (projectNum * 1000000 + Math.floor(Math.random() * 1000)).toString();
-    return data;
-  }
-  let tokenData = genTokenData(123);
+
